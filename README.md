@@ -1,5 +1,7 @@
 # dired-explorer
 
+Emacs elisp package.
+
 ##en
 
 This mode provides "Windows / Macintosh (Mac OS X) like file selection" for dired's buffer.
