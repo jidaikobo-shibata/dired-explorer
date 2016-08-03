@@ -18,7 +18,7 @@ rubikitch told me about this elisp's url at his school.
 
 but I couldn't know who made this originally.
 
-#ja
+##ja
 
 WindowsやMac OS Xのデフォルトのファイラのようなファイル選択をdiredで行います。
 
@@ -32,6 +32,4 @@ diredのアルファベット一文字のキーバインドは基本的に"M-"�
 
 モードの切り替えは":"で行ってください。
 
-このelispは、るびきちさんが彼のEmacs塾で、僕にURLを教えてくれましたが、
-
-僕にはオリジナルの作者が誰かわからなかったので、URLだけ明示しています。
+このelispは、[るびきちさんが彼のEmacs塾](http://www.mag2.com/m/0001373131.html)で、僕にURLを教えてくれましたが、僕にはオリジナルの作者が誰かわからなかったので、URLだけ明示しています。
