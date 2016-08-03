@@ -1,4 +1,4 @@
-;;; dired-explorer.init.el --- minor-mode provides Explorer like select file at dired.
+;;; dired-explorer.el --- minor-mode provides Explorer like select file at dired.
 ;; Original: http://homepage1.nifty.com/blankspace/emacs/dired.html
 ;; Original2: http://www.bookshelf.jp/soft/meadow_25.html#SEC286
 ;; Introduce and Supervise: rubikitch
