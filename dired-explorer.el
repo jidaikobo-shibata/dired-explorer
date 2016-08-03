@@ -206,7 +206,7 @@
                             (concat "osascript -e 'tell application \"Finder\" to return POSIX path of (original item of item (POSIX file \""
                                     path
                                     "\") as alias)'"))))))
-    (if (file-exists-p mac-orig-path)
+    (if (and mac-orig-path (file-exists-p mac-orig-path))
         (progn
           (message "%s" mac-orig-path)
           (setq path mac-orig-path)
