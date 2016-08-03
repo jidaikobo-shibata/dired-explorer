@@ -35,3 +35,9 @@ diredのアルファベット一文字のキーバインドは基本的に"M-"�
 モードの切り替えは":"で行ってください。
 
 このelispは、[るびきちさんが彼のEmacs塾](http://www.mag2.com/m/0001373131.html)で、僕にURLを教えてくれましたが、僕にはオリジナルの作者が誰かわからなかったので、URLだけ明示しています。
+
+#Maintainer
+
+jidaikobo-shibata
+
+[有限会社時代工房](http://www.jidaikobo.com)の柴田がメンテナーをしています。
