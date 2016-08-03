@@ -3,6 +3,7 @@
 ;; Original2: http://www.bookshelf.jp/soft/meadow_25.html#SEC286
 ;; Introduce and Supervise: rubikitch
 ;; Maintainer: jidaikobo-shibata
+;; Contributions: syohex
 ;; Keywords: dired explorer
 ;; Version: 0.2
 ;; for Emacs 24.5.1
