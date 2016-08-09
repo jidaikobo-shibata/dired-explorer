@@ -3,21 +3,21 @@
 ;; Original2: http://www.bookshelf.jp/soft/meadow_25.html#SEC286
 ;; Introduce and Supervise: rubikitch
 ;; Maintainer: jidaikobo-shibata
-;; Contributions: syohex
+;; Contributions: syohex, Steve Purcell
 ;; Keywords: dired explorer
-;; Version: 0.2
+;; Version: 0.3
 ;; for Emacs 24.5.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -45,10 +45,16 @@
 ;;; Usage:
 ;; just write below in your .init.
 ;; (require 'dired-explorer)
+;; (add-hook 'dired-mode-hook
+;;           (lambda ()
+;;             (define-key dired-mode-map ":" (lambda () (interactive) (dired-explorer-mode t)))
+;;             (dired-explorer-mode t)))
+;;
+;; toggle mode by ":".
+;;
 ;; below are also useful.
 ;; (define-key dired-mode-map (kbd "RET") 'dired-explorer-dired-open)
 ;; (define-key dired-mode-map (kbd "<s-return>") 'dired-explorer-dired-open)
-;; toggle mode by ":".
 
 ;;; Code:
 
@@ -98,7 +104,7 @@
 
 (define-minor-mode dired-explorer-mode
   "Minor-mode dired-explorer-mode."
-  :lighter " Expr")
+  :lighter " Expl")
 
 (defun dired-explorer-do-isearch (REGEX1 REGEX2 FUNC1 FUNC2 RPT)
   "Dired explorer isearch.  REGEX1 REGEX2 FUNC1 FUNC2 RPT."
@@ -186,23 +192,26 @@
            (define-key dired-explorer-mode-map (char-to-string ch) 'dired-explorer-isearch)))
 (dired-explorer-isearch-define-key "abcdefghijklmnopqrstuvwxyz0123456789")
 
-(add-hook 'dired-mode-hook
-          (lambda ()
-            (define-key dired-mode-map ":" (lambda () (interactive) (dired-explorer-mode t)))
-            (dired-explorer-mode t)))
+;; for older environment
+(defsubst dired-explorer-string-trim (string)
+  "Remove leading and trailing whitespace from STRING."
+  (if (string-match "\\`[ \t\n\r]+" string)
+      (replace-match "" t t string)
+    string)
+  (if (string-match "[ \t\n\r]+\\'" string)
+      (replace-match "" t t string)
+    string))
 
-(put 'dired-find-alternate-file 'disabled nil)
-(declare-function string-trim "string-trim" (x))
 (defun dired-explorer-dired-open ()
   "Dired open in accordance with situation."
   (interactive)
   (let* (p1
          p2
          (file "")
-         (path (expand-file-name (dired-file-name-at-point)))
+         (path (when (dired-file-name-at-point) (expand-file-name (dired-file-name-at-point))))
          (is-explorer (eq major-mode 'dired-explorer-mode))
          (mac-orig-path (when (eq system-type 'darwin)
-                          (string-trim
+                          (dired-explorer-string-trim
                            (shell-command-to-string
                             (concat "osascript -e 'tell application \"Finder\" to return POSIX path of (original item of item (POSIX file \""
                                     path
@@ -226,23 +235,32 @@
       (cond ((string= file ".")
              (message "current directory."))
             ;; up directory at same buffer
-          ((and
-            (one-window-p)
-            (or
-             (memq last-input-event '(94)) ; means "^"
-             (and (string= file "..") (not (memq last-input-event '(s-return S-return))))))
-           (find-alternate-file
-            (file-name-directory (directory-file-name (dired-current-directory)))))
-          ;; find file/directory at same buffer
-          ((and
-            (one-window-p)
-            (file-directory-p path)
-            (not (memq last-input-event '(s-return S-return))))
-           (dired-find-alternate-file))
-          ;; find file/directory at new buffer when S-RET / s-RET
-          (t
-           ;; (message "etc")
-           (dired-find-file))))
+            ((and
+              (one-window-p)
+              (or
+               (memq last-input-event '(94)) ; means "^"
+               (and (string= file "..")
+                    (not (memq last-input-event '(s-return S-return))))))
+             (find-alternate-file
+              (file-name-directory (directory-file-name (dired-current-directory)))))
+            ;; ;; at EOL of dired buffer usually press "^"....
+            ;; ((and
+            ;;   (one-window-p)
+            ;;   (string= file "")
+            ;;   (not (memq last-input-event '(s-return S-return)))
+            ;;   (memq last-input-event '(94)))
+            ;;  (find-alternate-file
+            ;;   (file-name-directory (directory-file-name (dired-current-directory)))))
+            ;; find file/directory at same buffer
+            ((and
+              (one-window-p)
+              (file-directory-p path)
+              (not (memq last-input-event '(s-return S-return))))
+             (dired-find-alternate-file))
+            ;; find file/directory at new buffer when S-RET / s-RET
+            (t
+             ;; (message "etc")
+             (dired-find-file))))
     ;; keep explorer-mode
     (when (or (and (file-directory-p path) is-explorer)
               (and (string= file "..") is-explorer))
