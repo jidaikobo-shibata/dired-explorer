@@ -1,5 +1,7 @@
 # dired-explorer
 
+[![MELPA](https://melpa.org/packages/dired-explorer-badge.svg)](https://melpa.org/#/dired-explorer)
+
 Emacs elisp package.
 
 ##en
