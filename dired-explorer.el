@@ -6,8 +6,8 @@
 ;; Contributions: syohex, Steve Purcell
 ;; Keywords: dired explorer
 ;; Package-Requires: ((cl-lib "0.5"))
-;; Version: 0.5
-;; for Emacs 24.5.1 - 25.2
+;; Version: 0.6
+;; for Emacs 24.5.1 - 26.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -102,7 +102,8 @@
     (define-key map "\M-w" 'dired-copy-filename-as-kill)
     (define-key map "\M-X" 'dired-do-flagged-delete) ; this must be capital
     (define-key map "\M-y" 'dired-show-file-type)
-    (define-key map ":" 'dired-explorer-mode)
+    (define-key map ":"    'dired-explorer-mode)
+    (define-key map "+"    'make-directory)
     ;; (define-key map "\C-m" 'dired-find-file)
     ;; (define-key map (kbd "<return>") 'dired-find-file)
     ;; (define-key map "^" 'dired-find-file)
@@ -184,6 +185,7 @@
           (setq input (read-event)))))))
 
 (defun dired-explorer-isearch()
+  "Incremental search for dired."
   (interactive)
   (dired-explorer-do-isearch
    "[0-9] "                                                        ; REGEX1
