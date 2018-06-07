@@ -56,6 +56,9 @@
 ;;; Change Log:
 ;; If You troubled with my change. Please contact me on Email.
 ;;
+;; 0.6
+;; add make-directory
+;;
 ;; 0.5
 ;; dired-explorer-dired-open is deleted. it seems meanless.
 ;; I was too foolish that I killed important Emacs keybind M-x at this mode.
@@ -223,59 +226,6 @@
                (not (string-match "execution error" mac-orig-path))
                (file-exists-p mac-orig-path))
       mac-orig-path)))
-
-;; (defun dired-explorer-dired-open ()
-;;   "Dired open in accordance with situation."
-;;   (interactive)
-;;   (let* (p1
-;;          p2
-;;          (file "")
-;;          (path (when (dired-file-name-at-point) (expand-file-name (dired-file-name-at-point))))
-;;          (is-explorer (eq major-mode 'dired-explorer-mode))
-;;          (mac-orig-path (dired-mac-alias-path path)))
-;;     (if mac-orig-path
-;;         (progn
-;;           (setq path mac-orig-path)
-;;           (cond ((and
-;;                   (one-window-p)
-;;                   (file-directory-p path)
-;;                   (not (memq last-input-event '(s-return S-return))))
-;;                  (find-alternate-file path))
-;;                 (t
-;;                  (find-file path))))
-;;       (when path
-;;         (save-excursion
-;;           (setq p1 (dired-move-to-filename))
-;;           (setq p2 (dired-move-to-end-of-filename))))
-;;       (when (and p1 p2) (setq file (buffer-substring p1 p2)))
-;;       ;; (message "this-event: %s this-command: %s" last-input-event this-command)
-;;       (cond ((string= file ".")
-;;              (message "current directory."))
-;;             ;; up directory at same buffer
-;;             ((and
-;;               (one-window-p)
-;;               (not (memq last-input-event '(s-return S-return)))
-;;               (or
-;;                (string= file "..")
-;;                ;; means "^"
-;;                (memq last-input-event '(94))))
-;;              (find-alternate-file
-;;               (file-name-directory (directory-file-name (dired-current-directory)))))
-;;             ((and
-;;               (one-window-p)
-;;               (file-directory-p path)
-;;               (not (memq last-input-event '(s-return S-return))))
-;;              (dired-find-alternate-file))
-;;             ;; find file/directory at new buffer when S-RET / s-RET
-;;             ((memq last-input-event '(94))
-;;              (find-file
-;;               (file-name-directory (directory-file-name (dired-current-directory)))))
-;;             (t
-;;              (dired-find-file))))
-;;     ;; keep explorer-mode
-;;     (when (or (and (file-directory-p path) is-explorer)
-;;               (and (string= file "..") is-explorer))
-;;       (unless dired-explorer-mode (dired-explorer-mode t)))))
 
 ;;; ------------------------------------------------------------
 ;;; Provide
