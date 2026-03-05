@@ -7,6 +7,7 @@
 ;; Keywords: dired explorer
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; Version: 0.6
+;; git tag 0.6; git push --tags
 ;; for Emacs 24.5.1 - 26.1
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -83,34 +84,35 @@
 
 (defvar dired-explorer-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; Lower keys for normal dired-mode are replaced M-* at thid mode.
-    ;; except for "x".
-    (define-key map "\M-a" 'dired-find-alternate-file)
-    (define-key map "\M-d" 'dired-flag-file-deletion)
-    (define-key map "\M-e" 'dired-find-file)
-    (define-key map "\M-f" 'dired-find-file)
+    ;; ;; Lower keys for normal dired-mode are replaced M-* at thid mode.
+    ;; ;; except for "x".
+    ;; (define-key map "\M-a" 'dired-find-alternate-file)
+    ;; (define-key map "\M-d" 'dired-flag-file-deletion)
+    ;; (define-key map "\M-e" 'dired-find-file)
+    ;; (define-key map "\M-f" 'dired-find-file)
     (define-key map "\M-g" 'revert-buffer)
-    (define-key map "\M-i" 'dired-maybe-insert-subdir)
-    (define-key map "\M-j" 'dired-goto-file)
-    (define-key map "\M-k" 'dired-do-kill-lines)
-    (define-key map "\M-l" 'dired-do-redisplay)
-    (define-key map "\M-m" 'dired-mark)
-    (define-key map "\M-n" 'dired-next-line)
+    ;; (define-key map "\M-i" 'dired-maybe-insert-subdir)
+    ;; (define-key map "\M-j" 'dired-goto-file)
+    ;; (define-key map "\M-k" 'dired-do-kill-lines)
+    ;; (define-key map "\M-l" 'dired-do-redisplay)
+    ;; (define-key map "\M-m" 'dired-mark)
+    ;; (define-key map "\M-n" 'dired-next-line)
     (define-key map "\M-o" 'dired-find-file-other-window)
-    (define-key map "\M-p" 'dired-previous-line)
-    (define-key map "\M-s" 'dired-sort-toggle-or-edit)
-    (define-key map "\M-t" 'dired-toggle-marks)
-    (define-key map "\M-u" 'dired-unmark)
-    (define-key map "\M-v" 'dired-view-file)
-    (define-key map "\M-w" 'dired-copy-filename-as-kill)
-    (define-key map "\M-X" 'dired-do-flagged-delete) ; this must be capital
-    (define-key map "\M-y" 'dired-show-file-type)
-    (define-key map ":"    'dired-explorer-mode)
-    (define-key map "+"    'make-directory)
-    ;; (define-key map "\C-m" 'dired-find-file)
-    ;; (define-key map (kbd "<return>") 'dired-find-file)
-    ;; (define-key map "^" 'dired-find-file)
-    ;; (define-key map "I" 'dired-kill-subdir)
+    ;; (define-key map "\M-p" 'dired-previous-line)
+    ;; (define-key map "\M-t" 'dired-toggle-marks)
+    ;; (define-key map "\M-u" 'dired-unmark)
+    ;; (define-key map "\M-v" 'dired-view-file)
+    ;; (define-key map "\M-w" 'dired-copy-filename-as-kill)
+    ;; (define-key map "\M-X" 'dired-do-flagged-delete) ; this must be capital
+    ;; (define-key map "\M-y" 'dired-show-file-type)
+    ;; (define-key map ":"    'dired-explorer-mode)
+    ;; (define-key map "+"    'make-directory)
+    ;; 以下、副作用のある怖いものたち
+    ;; ;; (define-key map "\M-s" 'dired-sort-toggle-or-edit)
+    ;; ;; (define-key map "\C-m" 'dired-find-file)
+    ;; ;; (define-key map (kbd "<return>") 'dired-find-file)
+    ;; ;; (define-key map "^" 'dired-find-file)
+    ;; ;; (define-key map "I" 'dired-kill-subdir)
     map))
 
 (define-minor-mode dired-explorer-mode
@@ -219,9 +221,19 @@
   (let (mac-orig-path)
     (setq mac-orig-path
           (when (eq system-type 'darwin)
-            (dired-explorer-string-trim
-             (shell-command-to-string
-              (concat "osascript -e 'tell application \"Finder\" to return POSIX path of (original item of item (POSIX file \"" path "\") as alias)'")))))
+            (condition-case nil
+                (dired-explorer-string-trim
+                 (mapconcat
+                  #'identity
+                  (process-lines
+                   "osascript"
+                   "-e" "on run argv"
+                   "-e" "tell application \"Finder\" to return POSIX path of (original item of item (POSIX file (item 1 of argv)) as alias)"
+                   "-e" "end run"
+                   "--"
+                   path)
+                  "\n"))
+              (error nil)))
     (when (and mac-orig-path ;; thx syohex
                (not (string-match "execution error" mac-orig-path))
                (file-exists-p mac-orig-path))
