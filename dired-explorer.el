@@ -1,4 +1,4 @@
-;;; dired-explorer.el --- minor-mode provides Explorer like select file at dired.
+;;; dired-explorer.el --- minor-mode provides Explorer like select file at dired. -*- lexical-binding: t; -*-
 ;; Original: http://homepage1.nifty.com/blankspace/emacs/dired.html
 ;; Original2: http://www.bookshelf.jp/soft/meadow_25.html#SEC286
 ;; Introduce and Supervise: rubikitch
@@ -37,7 +37,7 @@
 ;; [ja]
 ;; WindowsやMac OS Xのデフォルトのファイラのようなファイル選択をdiredで行います。
 ;; 英数字のキーを打鍵するだけで、diredでファイル／ディレクトリを選択します。
-;; また、diredeがたくさんのバッファを開きすぎることを抑止しています。
+;; また、diredがたくさんのバッファを開きすぎることを抑止しています。
 ;; 当然ながら、このモードを有効にするとデフォルトのdiredのキーバインドが使えません。
 ;; diredのアルファベット一文字のキーバインドは基本的に"M-"にあて直しています。
 ;; モードの切り替えは":"で行ってください。
@@ -72,15 +72,42 @@
 (require 'dired)
 (require 'cl-lib)
 
-(defvar dired-explorer-mode              nil)
 (defvar dired-explorer-isearch-next      "\C-r")
 (defvar dired-explorer-isearch-prev      "\C-e")
 (defvar dired-explorer-isearch-backspace "\C-h")
 (defvar dired-explorer-isearch-return    "\C-g")
-(defvar dired-explorer-isearch-returnkey "\C-m")
-(defvar dired-explorer-isearch-word      "")
-(defvar dired-explorer-mode-hook         nil)
-(defvar dired-mode-old-local-map)
+
+
+(defvar dired-explorer--active-isearch-keys ""
+  "Keys currently bound to `dired-explorer-isearch' in mode map.")
+
+(defun dired-explorer--set-trigger-keys (keys)
+  "Refresh dired-explorer isearch bindings with KEYS."
+  (when (boundp 'dired-explorer-mode-map)
+    (cl-loop for ch across dired-explorer--active-isearch-keys do
+             (define-key dired-explorer-mode-map (char-to-string ch) nil))
+    (cl-loop for ch across keys do
+             (define-key dired-explorer-mode-map
+               (char-to-string ch)
+               #'dired-explorer-isearch))
+    (setq dired-explorer--active-isearch-keys keys)))
+
+
+(defcustom dired-explorer-isearch-trigger-keys
+  "abcdefghijklmnopqrstuvwxyz0123456789"
+  "Characters that trigger dired-explorer-isearch in dired-explorer-mode."
+  :type 'string
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (dired-explorer--set-trigger-keys value))
+  :group 'dired)
+
+(defun dired-explorer--trigger-char-p (input)
+  "Return non-nil when INPUT should trigger explorer isearch."
+  (and (integerp input)
+       (string-match-p
+        (regexp-quote (char-to-string input))
+        dired-explorer-isearch-trigger-keys)))
 
 (defvar dired-explorer-mode-map
   (let ((map (make-sparse-keymap)))
@@ -118,59 +145,53 @@
 (define-minor-mode dired-explorer-mode
   "Minor-mode dired-explorer-mode."
   :lighter " Expl")
-
-(defun dired-explorer-do-isearch (REGEX1 REGEX2 FUNC1 FUNC2 RPT)
+(defun dired-explorer-do-isearch (regex1 regex2 func1 func2 rpt)
   "Dired explorer isearch.  REGEX1 REGEX2 FUNC1 FUNC2 RPT."
   (interactive)
   (let ((input last-command-event)
         (inhibit-quit t)
         (oldpoint (point))
+        (last-word "")
         regx
         str
         (n 1))
     (save-match-data
       (catch 'END
         (while t
-          (funcall FUNC1)
+          (funcall func1)
           (cond
-           ;;end
+           ;; end
            ((and (integerp input) (= input ?:))
-            (setq unread-command-events (append (list input) unread-command-events))
+            (setq unread-command-events (cons input unread-command-events))
             (throw 'END nil))
 
            ;; character
-           ;;_.-+~#
-           ((and (integerp input)
-                 (or (and (>= input ?a) (<= input ?z))
-                     ;; (and (>= input ?A) (<= input ?Z)) ; ignore to use command like "C"
-                     (and (>= input ?0) (<= input ?9))))
-            (setq str (char-to-string input))
-            (if (string= dired-explorer-isearch-word str)
-                (setq n 2)
-              (setq n 1))
-            ;; .meadow.el meadow.el は同一視
-            (setq regx (concat REGEX1 "[\.~#+_]*" str REGEX2))
-            (if (not (re-search-forward regx nil t n))
-                (progn
-                  (goto-char (point-min))
-                  (re-search-forward regx nil t nil)))
-            (setq dired-explorer-isearch-word str))
+           ;; _. - + ~ #
+           ((dired-explorer--trigger-char-p input)
+            (setq str (char-to-string input)
+                  n (if (string= last-word str) 2 1)
+                  regx (concat regex1 "[\.~#+_]*" str regex2))
+            (unless (re-search-forward regx nil t n)
+              (goto-char (point-min))
+              (re-search-forward regx nil t nil))
+            (setq last-word str))
 
            ;; backspace
            ((and (integerp input)
                  (or (eq 'backspace input)
                      (= input (string-to-char dired-explorer-isearch-backspace))))
-            (setq str (if (eq 0 (length str)) str (substring str 0 -1)))
-            (setq regx (concat REGEX1 str REGEX2))
-            (goto-char oldpoint)
-            (re-search-forward regx nil t nil))
+            (when (> (length str) 0)
+              (setq str (substring str 0 -1)
+                    regx (concat regex1 str regex2))
+              (goto-char oldpoint)
+              (re-search-forward regx nil t nil)))
 
            ;; next
-           ((and (integerp input) (= input (string-to-char dired-explorer-isearch-next)))
-            (re-search-forward regx nil t RPT))
+           ((and regx (integerp input) (= input (string-to-char dired-explorer-isearch-next)))
+            (re-search-forward regx nil t rpt))
 
            ;; previous
-           ((and (integerp input) (= input (string-to-char dired-explorer-isearch-prev)))
+           ((and regx (integerp input) (= input (string-to-char dired-explorer-isearch-prev)))
             (re-search-backward regx nil t nil))
 
            ;; return
@@ -181,10 +202,10 @@
 
            ;; other command
            (t
-            (setq unread-command-events (append (list input) unread-command-events))
+            (setq unread-command-events (cons input unread-command-events))
             (throw 'END nil)))
 
-          (funcall FUNC2)
+          (funcall func2)
           ;; (highline-highlight-current-line)
           ;; (message str)
           (setq input (read-event)))))))
@@ -200,11 +221,7 @@
    2                                                               ; RPT
    ))
 
-(defun dired-explorer-isearch-define-key (str)
-  "Dired explorer isearch define key.  STR."
-  (cl-loop for ch across str do
-           (define-key dired-explorer-mode-map (char-to-string ch) 'dired-explorer-isearch)))
-(dired-explorer-isearch-define-key "abcdefghijklmnopqrstuvwxyz0123456789")
+(dired-explorer--set-trigger-keys dired-explorer-isearch-trigger-keys)
 
 ;; for older environment
 (defsubst dired-explorer-string-trim (string)
@@ -233,7 +250,7 @@
                    "--"
                    path)
                   "\n"))
-              (error nil)))
+              (error nil))))
     (when (and mac-orig-path ;; thx syohex
                (not (string-match "execution error" mac-orig-path))
                (file-exists-p mac-orig-path))
