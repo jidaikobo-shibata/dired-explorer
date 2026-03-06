@@ -1,14 +1,14 @@
-;;; dired-explorer.el --- minor-mode provides Explorer like select file at dired. -*- coding: utf-8; lexical-binding: t; -*-
+;;; dired-explorer.el --- Provide Explorer-like file selection in Dired. -*- coding: utf-8; lexical-binding: t; -*-
 ;; Original: http://homepage1.nifty.com/blankspace/emacs/dired.html
 ;; Original2: http://www.bookshelf.jp/soft/meadow_25.html#SEC286
 ;; Introduce and Supervise: rubikitch
 ;; Maintainer: jidaikobo-shibata
 ;; Contributions: syohex, Steve Purcell
 ;; Keywords: dired explorer
-;; Package-Requires: ((cl-lib "0.5"))
-;; Version: 0.6
-;; git tag 0.6; git push --tags
-;; for Emacs 24.5.1 - 26.1
+;; Package-Requires: ((emacs "24.3"))
+;; Version: 0.7
+;; git tag 0.7; git push --tags
+;; tested on Emacs 30.2
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@
 ;; of course, at this mode, cannot use dired's default keybind like "c".
 ;; You may use keybind that made of one alphabet, use with Meta (e.g. M-d).
 ;; toggle mode by ":".
-;; rubikitch told me about this elisp's url at his school.
-;; but I couldn't know who made this originally.
+;; This elisp is based on the original elisp that rubikichi introduced me
+;; to at his Emacs school "Emacs Juku". He also gave me some advice on elisp.
 ;;
 ;; [ja]
 ;; WindowsやMac OS Xのデフォルトのファイラのようなファイル選択をdiredで行います。
@@ -41,28 +41,33 @@
 ;; 当然ながら、このモードを有効にするとデフォルトのdiredのキーバインドが使えません。
 ;; diredのアルファベット一文字のキーバインドは基本的に"M-"にあて直しています。
 ;; モードの切り替えは":"で行ってください。
-;; このelispは、るびきちさんが彼のEmacs塾で、僕にURLを教えてくれましたが、
-;; 僕にはオリジナルの作者が誰かわからなかったので、URLだけ明示しています。
+;; このelispは、かつて、るびきちさんが彼のEmacs塾で、もとになるElispを
+;; 紹介くださったものをもとにしています。また、彼はelispにアドバイスもくださいました。
 
 ;;; Usage:
-;; just write below in your .init.
+;; Add the following to your init file:
 ;; (require 'dired-explorer)
 ;; (add-hook 'dired-mode-hook
 ;;           (lambda ()
 ;;             (define-key dired-mode-map ":" (lambda () (interactive) (dired-explorer-mode t)))
 ;;             (dired-explorer-mode t)))
 ;;
-;; toggle mode by ":".
+;; Toggle mode by ":".
 
 ;;; Change Log:
-;; If You troubled with my change. Please contact me on Email.
+;; If you have issues with these changes, please contact me by email.
+;;
+;; 0.7
+;; refactor isearch internals and trigger-key customization
+;; replace shell-command-to-string with process-lines for macOS alias lookup
+;; convert source encoding to UTF-8 for MELPA display
 ;;
 ;; 0.6
 ;; add make-directory
 ;;
 ;; 0.5
-;; dired-explorer-dired-open is deleted. it seems meanless.
-;; I was too foolish that I killed important Emacs keybind M-x at this mode.
+;; dired-explorer-dired-open is deleted. It seemed meaningless.
+;; I was too foolish that I killed important Emacs keybinding M-x in this mode.
 ;;
 ;; 0.4
 ;; first release
