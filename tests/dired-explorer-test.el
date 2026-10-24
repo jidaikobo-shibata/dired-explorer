@@ -59,4 +59,15 @@
         (dired-explorer-test--type (list (car case) 13))
         (should (equal (dired-get-filename 'no-dir t) (cdr case)))))))
 
+(ert-deftest dired-explorer-search-backspace-events ()
+  (dired-explorer-test--with-files '("alpha" "amber" "beta")
+    (dolist (event '(backspace ?\C-h))
+      (goto-char (point-min))
+      (should (equal (dired-explorer-test--type (list ?a event ?b 13)) '(13)))
+      (should (equal (dired-get-filename 'no-dir t) "beta"))
+      ;; Deleting the search character also clears repeated-key state.
+      (goto-char (point-min))
+      (should (equal (dired-explorer-test--type (list ?a event event ?a 13)) '(13)))
+      (should (equal (dired-get-filename 'no-dir t) "alpha")))))
+
 ;;; dired-explorer-test.el ends here

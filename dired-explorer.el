@@ -207,11 +207,12 @@ when no matching entry is found."
             (setq last-word str))
 
            ;; backspace
-           ((and (integerp input)
-                 (or (eq 'backspace input)
+           ((or (eq 'backspace input)
+                (and (integerp input)
                      (= input (string-to-char dired-explorer-isearch-backspace))))
             (when (> (length str) 0)
               (setq str (substring str 0 -1)
+                    last-word ""
                     regx (concat regex1 (regexp-quote str) regex2))
               (goto-char oldpoint)
               (dired-explorer--search-filename regx)))
