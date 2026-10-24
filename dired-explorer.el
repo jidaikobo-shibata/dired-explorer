@@ -150,6 +150,31 @@
 (define-minor-mode dired-explorer-mode
   "Minor-mode dired-explorer-mode."
   :lighter " Expl")
+(defun dired-explorer--search-filename (regexp &optional backward count)
+  "Find a Dired filename matching REGEXP in the given direction.
+Search backward when BACKWARD is non-nil, otherwise forward.
+COUNT specifies which matching entry to select.  Leave point unchanged
+when no matching entry is found."
+  (let ((origin (point))
+        (remaining (or count 1))
+        found)
+    (save-excursion
+      (beginning-of-line)
+      (while (and (> remaining 0) (not found))
+        (let ((filename (dired-get-filename 'no-dir t)))
+          (when (and filename
+                     (dired-move-to-filename)
+                     (if backward (< (point) origin) (>= (point) origin))
+                     (string-match-p regexp filename))
+            (setq remaining (1- remaining))
+            (when (= remaining 0)
+              (setq found (point)))))
+        (unless found
+          (when (/= (forward-line (if backward -1 1)) 0)
+            (setq remaining 0)))))
+    (when found
+      (goto-char found))))
+
 (defun dired-explorer-do-isearch (regex1 regex2 func1 func2 rpt)
   "Dired explorer isearch.  REGEX1 REGEX2 FUNC1 FUNC2 RPT."
   (interactive)
@@ -176,9 +201,9 @@
             (setq str (char-to-string input)
                   n (if (string= last-word str) 2 1)
                   regx (concat regex1 "[\.~#+_]*" str regex2))
-            (unless (re-search-forward regx nil t n)
+            (unless (dired-explorer--search-filename regx nil n)
               (goto-char (point-min))
-              (re-search-forward regx nil t nil))
+              (dired-explorer--search-filename regx))
             (setq last-word str))
 
            ;; backspace
@@ -189,15 +214,15 @@
               (setq str (substring str 0 -1)
                     regx (concat regex1 str regex2))
               (goto-char oldpoint)
-              (re-search-forward regx nil t nil)))
+              (dired-explorer--search-filename regx)))
 
            ;; next
            ((and regx (integerp input) (= input (string-to-char dired-explorer-isearch-next)))
-            (re-search-forward regx nil t rpt))
+            (dired-explorer--search-filename regx nil rpt))
 
            ;; previous
            ((and regx (integerp input) (= input (string-to-char dired-explorer-isearch-prev)))
-            (re-search-backward regx nil t nil))
+            (dired-explorer--search-filename regx t))
 
            ;; return
            ((and (integerp input) (= input (string-to-char dired-explorer-isearch-return)))
@@ -219,12 +244,7 @@
   "Incremental search for dired."
   (interactive)
   (dired-explorer-do-isearch
-   "[0-9] "                                                        ; REGEX1
-   "[^ \n]+$"                                                      ; REGEX2
-   (lambda() (if (not (= (point-min) (point))) (backward-char 3))) ; FUNC1
-   'dired-move-to-filename                                         ; FUNC2
-   2                                                               ; RPT
-   ))
+   "\\`" "" #'beginning-of-line #'dired-move-to-filename 2))
 
 (dired-explorer--set-trigger-keys dired-explorer-isearch-trigger-keys)
 
