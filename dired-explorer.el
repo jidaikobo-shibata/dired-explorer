@@ -94,21 +94,19 @@
 (defvar dired-explorer-isearch-backspace "\C-h")
 (defvar dired-explorer-isearch-return    "\C-g")
 
-
 (defvar dired-explorer--active-isearch-keys ""
   "Keys currently bound to `dired-explorer-isearch' in mode map.")
 
 (defun dired-explorer--set-trigger-keys (keys)
   "Refresh dired-explorer isearch bindings with KEYS."
   (when (boundp 'dired-explorer-mode-map)
-    (cl-loop for ch across dired-explorer--active-isearch-keys do
-             (define-key dired-explorer-mode-map (char-to-string ch) nil))
-    (cl-loop for ch across keys do
-             (define-key dired-explorer-mode-map
-               (char-to-string ch)
-               #'dired-explorer-isearch))
+    (cl-loop for ch across dired-explorer--active-isearch-keys
+             do (define-key dired-explorer-mode-map (char-to-string ch) nil))
+    (cl-loop for ch across keys
+             do (define-key dired-explorer-mode-map
+                            (char-to-string ch)
+                            #'dired-explorer-isearch))
     (setq dired-explorer--active-isearch-keys keys)))
-
 
 (defcustom dired-explorer-isearch-trigger-keys
   "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -128,13 +126,14 @@
 
 (defvar dired-explorer-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\M-g" 'revert-buffer)
-    (define-key map "\M-o" 'dired-find-file-other-window)
+    (define-key map "\M-g" #'revert-buffer)
+    (define-key map "\M-o" #'dired-find-file-other-window)
     map))
 
 (define-minor-mode dired-explorer-mode
   "Minor-mode dired-explorer-mode."
   :lighter " Expl")
+
 (defun dired-explorer--search-filename (regexp &optional backward count)
   "Find a Dired filename matching REGEXP in the given direction.
 Search backward when BACKWARD is non-nil, otherwise forward.
@@ -149,7 +148,9 @@ when no matching entry is found."
         (let ((filename (dired-get-filename 'no-dir t)))
           (when (and filename
                      (dired-move-to-filename)
-                     (if backward (< (point) origin) (>= (point) origin))
+                     (if backward
+                         (< (point) origin)
+                       (>= (point) origin))
                      (string-match-p regexp filename))
             (setq remaining (1- remaining))
             (when (= remaining 0)
@@ -181,7 +182,6 @@ when no matching entry is found."
             (throw 'END nil))
 
            ;; character
-           ;; _. - + ~ #
            ((dired-explorer--trigger-char-p input)
             (setq str (char-to-string input)
                   n (if (string= last-word str) 2 1)
@@ -203,15 +203,20 @@ when no matching entry is found."
               (dired-explorer--search-filename regx)))
 
            ;; next
-           ((and regx (integerp input) (= input (string-to-char dired-explorer-isearch-next)))
+           ((and regx
+                 (integerp input)
+                 (= input (string-to-char dired-explorer-isearch-next)))
             (dired-explorer--search-filename regx nil rpt))
 
            ;; previous
-           ((and regx (integerp input) (= input (string-to-char dired-explorer-isearch-prev)))
+           ((and regx
+                 (integerp input)
+                 (= input (string-to-char dired-explorer-isearch-prev)))
             (dired-explorer--search-filename regx t))
 
            ;; return
-           ((and (integerp input) (= input (string-to-char dired-explorer-isearch-return)))
+           ((and (integerp input)
+                 (= input (string-to-char dired-explorer-isearch-return)))
             (goto-char oldpoint)
             (message "return")
             (throw 'END nil))
@@ -222,11 +227,9 @@ when no matching entry is found."
             (throw 'END nil)))
 
           (funcall func2)
-          ;; (highline-highlight-current-line)
-          ;; (message str)
           (setq input (read-event)))))))
 
-(defun dired-explorer-isearch()
+(defun dired-explorer-isearch ()
   "Incremental search for dired."
   (interactive)
   (dired-explorer-do-isearch
