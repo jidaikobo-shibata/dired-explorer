@@ -34,7 +34,7 @@
     (dolist (case '((?a . "a") (?c . "charlie space")))
       (goto-char (point-min))
       (should (equal (dired-explorer-test--type (list (car case) 13)) '(13)))
-      (should (equal (dired-get-filename 'no-dir) (cdr case))))
+      (should (equal (dired-get-filename 'no-dir t) (cdr case))))
     ;; Text inside a filename must not be mistaken for its beginning.
     (goto-char (point-min))
     (dired-explorer-test--type '(?z 13))
@@ -48,6 +48,15 @@
                     ((?a ?a ?\C-e 13) . "alpha")))
       (goto-char (point-min))
       (dired-explorer-test--type (car case))
-      (should (equal (dired-get-filename 'no-dir) (cdr case))))))
+      (should (equal (dired-get-filename 'no-dir t) (cdr case))))))
+
+(ert-deftest dired-explorer-search-literal-trigger-characters ()
+  (dired-explorer-test--with-files '("alpha" "[literal" "*literal" "^literal")
+    (let ((dired-explorer-isearch-trigger-keys ".[*^"))
+      (dolist (case '((?. . ".") (?\[ . "[literal")
+                      (?* . "*literal") (?^ . "^literal")))
+        (goto-char (point-min))
+        (dired-explorer-test--type (list (car case) 13))
+        (should (equal (dired-get-filename 'no-dir t) (cdr case)))))))
 
 ;;; dired-explorer-test.el ends here

@@ -200,7 +200,7 @@ when no matching entry is found."
            ((dired-explorer--trigger-char-p input)
             (setq str (char-to-string input)
                   n (if (string= last-word str) 2 1)
-                  regx (concat regex1 "[\.~#+_]*" str regex2))
+                  regx (concat regex1 "[\.~#+_]*" (regexp-quote str) regex2))
             (unless (dired-explorer--search-filename regx nil n)
               (goto-char (point-min))
               (dired-explorer--search-filename regx))
@@ -212,7 +212,7 @@ when no matching entry is found."
                      (= input (string-to-char dired-explorer-isearch-backspace))))
             (when (> (length str) 0)
               (setq str (substring str 0 -1)
-                    regx (concat regex1 str regex2))
+                    regx (concat regex1 (regexp-quote str) regex2))
               (goto-char oldpoint)
               (dired-explorer--search-filename regx)))
 
