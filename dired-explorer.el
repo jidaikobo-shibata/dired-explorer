@@ -25,34 +25,46 @@
 
 ;;; Commentary:
 ;; [en]
-;; This mode provides "Windows / Macintosh (Mac OS X) like file selection" for dired's buffer.
-;; Move cursor by just pressing alphabet or number key.
-;; And also it prohibits dired from opening many buffers.
-;; of course, at this mode, cannot use dired's default keybind like "c".
-;; You may use keybind that made of one alphabet, use with Meta (e.g. M-d).
-;; toggle mode by ":".
+;; Select files and directories in Dired by typing lowercase letters or digits,
+;; as in Windows Explorer or macOS Finder.
+;; Loading this package leaves the mode disabled and preserves Dired's keymap.
+;; Use M-x dired-explorer-mode to toggle it in the current Dired buffer.
+;; While enabled, lowercase letters and digits select files instead of running
+;; their usual Dired commands.  Uppercase letters and punctuation retain their
+;; usual bindings by default.  Disabling the mode restores the usual bindings.
+;; Bind any Dired commands you need to modifier-key combinations of your choice,
+;; taking care not to overwrite existing bindings.  For example:
+;; (define-key dired-explorer-mode-map (kbd "M-m") #'dired-mark)
+;; The mode also binds M-g to refresh and M-o to open in another window.
+;; The standard Dired prefix key : is left unchanged.
 ;; This elisp is based on the original elisp that rubikichi introduced me
 ;; to at his Emacs school "Emacs Juku". He also gave me some advice on elisp.
 ;;
 ;; [ja]
-;; WindowsやMac OS Xのデフォルトのファイラのようなファイル選択をdiredで行います。
-;; 英数字のキーを打鍵するだけで、diredでファイル／ディレクトリを選択します。
-;; また、diredがたくさんのバッファを開きすぎることを抑止しています。
-;; 当然ながら、このモードを有効にするとデフォルトのdiredのキーバインドが使えません。
-;; diredのアルファベット一文字のキーバインドは基本的に"M-"にあて直しています。
-;; モードの切り替えは":"で行ってください。
+;; WindowsのExplorerやmacOSのFinderのように、小文字の英字と数字を入力して、
+;; Diredでファイルやディレクトリを選択します。
+;; 読み込むだけではモードは有効にならず、Diredのキーマップも変更しません。
+;; M-x dired-explorer-mode で、現在のDiredバッファでの有効・無効を切り替えます。
+;; 有効にすると、小文字の英字と数字は通常のDired操作の代わりにファイル選択に
+;; 使われます。デフォルトでは、大文字や記号の通常のキー操作は引き続き使えます。
+;; モードを無効にすると、通常のキー操作に戻ります。
+;; 必要なDired操作は、既存の割り当てとの重複に注意して、
+;; モディファイアキーとの組み合わせなどに設定してください。
+;; 例:
+;; (define-key dired-explorer-mode-map (kbd "M-m") #'dired-mark)
+;; このほか、有効時はM-gで再表示、M-oで別ウィンドウに開く操作を使えます。
+;; 標準Diredのプレフィックスキー : の割り当ては変更しません。
 ;; このelispは、かつて、るびきちさんが彼のEmacs塾で、もとになるElispを
 ;; 紹介くださったものをもとにしています。また、彼はelispにアドバイスもくださいました。
 
 ;;; Usage:
-;; Add the following to your init file:
+;; Load the package, then run M-x dired-explorer-mode in a Dired buffer:
+;; パッケージを読み込み、Diredで M-x dired-explorer-mode を実行します:
 ;; (require 'dired-explorer)
-;; (add-hook 'dired-mode-hook
-;;           (lambda ()
-;;             (define-key dired-mode-map ":" (lambda () (interactive) (dired-explorer-mode t)))
-;;             (dired-explorer-mode t)))
 ;;
-;; Toggle mode by ":".
+;; Optional: add this to init.el to enable the mode in every new Dired buffer:
+;; 任意設定: 新しく開くDiredで毎回有効にする場合はinit.elに追加します:
+;; (add-hook 'dired-mode-hook #'dired-explorer-mode)
 
 ;;; Change Log:
 ;; If you have issues with these changes, please contact me by email.
@@ -116,35 +128,8 @@
 
 (defvar dired-explorer-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; ;; Lower keys for normal dired-mode are replaced M-* at thid mode.
-    ;; ;; except for "x".
-    ;; (define-key map "\M-a" 'dired-find-alternate-file)
-    ;; (define-key map "\M-d" 'dired-flag-file-deletion)
-    ;; (define-key map "\M-e" 'dired-find-file)
-    ;; (define-key map "\M-f" 'dired-find-file)
     (define-key map "\M-g" 'revert-buffer)
-    ;; (define-key map "\M-i" 'dired-maybe-insert-subdir)
-    ;; (define-key map "\M-j" 'dired-goto-file)
-    ;; (define-key map "\M-k" 'dired-do-kill-lines)
-    ;; (define-key map "\M-l" 'dired-do-redisplay)
-    ;; (define-key map "\M-m" 'dired-mark)
-    ;; (define-key map "\M-n" 'dired-next-line)
     (define-key map "\M-o" 'dired-find-file-other-window)
-    ;; (define-key map "\M-p" 'dired-previous-line)
-    ;; (define-key map "\M-t" 'dired-toggle-marks)
-    ;; (define-key map "\M-u" 'dired-unmark)
-    ;; (define-key map "\M-v" 'dired-view-file)
-    ;; (define-key map "\M-w" 'dired-copy-filename-as-kill)
-    ;; (define-key map "\M-X" 'dired-do-flagged-delete) ; this must be capital
-    ;; (define-key map "\M-y" 'dired-show-file-type)
-    ;; (define-key map ":"    'dired-explorer-mode)
-    ;; (define-key map "+"    'make-directory)
-    ;; 以下、副作用のある怖いものたち
-    ;; ;; (define-key map "\M-s" 'dired-sort-toggle-or-edit)
-    ;; ;; (define-key map "\C-m" 'dired-find-file)
-    ;; ;; (define-key map (kbd "<return>") 'dired-find-file)
-    ;; ;; (define-key map "^" 'dired-find-file)
-    ;; ;; (define-key map "I" 'dired-kill-subdir)
     map))
 
 (define-minor-mode dired-explorer-mode
