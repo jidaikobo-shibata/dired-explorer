@@ -6,8 +6,8 @@
 ;; Contributions: syohex, Steve Purcell
 ;; Keywords: dired explorer
 ;; Package-Requires: ((emacs "24.3"))
-;; Version: 0.7
-;; git tag 0.7; git push --tags
+;; Version: 0.8
+;; git tag 0.8; git push --tags
 ;; tested on Emacs 30.2
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -68,6 +68,13 @@
 
 ;;; Change Log:
 ;; If you have issues with these changes, please contact me by email.
+;;
+;; 0.8
+;; search Dired filenames directly, including symbolic links and names with spaces
+;; support single-character filenames and escape literal search characters
+;; handle Backspace events and fix leading whitespace trimming
+;; clarify opt-in usage and keybindings in Japanese and English
+;; add regression tests and format Lisp code
 ;;
 ;; 0.7
 ;; refactor isearch internals and trigger-key customization
