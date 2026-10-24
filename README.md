@@ -17,12 +17,12 @@ Loading this package leaves the mode disabled and preserves Dired's keymap:
 
 Use `M-x dired-explorer-mode` to toggle it in the current Dired buffer.
 While enabled, lowercase letters and digits select files instead of running
-their usual Dired commands. Uppercase letters and punctuation retain their
-usual bindings by default. Disabling the mode restores the usual bindings.
-The standard Dired prefix key `:` is left unchanged.
+their usual Dired commands. Uppercase letters (such as `M` to change file
+permissions) and punctuation retain their usual bindings by default.
 
-Bind any Dired commands you need to modifier-key combinations of your choice,
-taking care not to overwrite existing bindings. For example:
+To use Dired commands while `dired-explorer-mode` is enabled, bind them to
+modifier-key combinations of your choice, taking care not to overwrite
+existing bindings. For example:
 
 ```elisp
 (define-key dired-explorer-mode-map (kbd "M-m") #'dired-mark)
@@ -52,11 +52,11 @@ Diredでファイルやディレクトリを選択します。
 
 `M-x dired-explorer-mode` で、現在のDiredバッファでの有効・無効を切り替えます。
 有効にすると、小文字の英字と数字は通常のDired操作の代わりにファイル選択に
-使われます。デフォルトでは、大文字や記号の通常のキー操作は引き続き使えます。
-モードを無効にすると、通常のキー操作に戻ります。
-標準Diredのプレフィックスキー `:` の割り当ては変更しません。
+使われます。デフォルトでは、大文字（パーミッションを変更する `M` など）や
+記号の通常のキー操作は引き続き使えます。
 
-必要なDired操作は、既存の割り当てとの重複に注意して、
+`dired-explorer-mode` の有効時にも使いたいDired操作は、
+既存の割り当てとの重複に注意して、
 モディファイアキーとの組み合わせなどに設定してください。例:
 
 ```elisp
