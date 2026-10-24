@@ -252,9 +252,8 @@ when no matching entry is found."
 ;; for older environment
 (defsubst dired-explorer-string-trim (string)
   "Remove leading and trailing whitespace from STRING."
-  (if (string-match "\\`[ \t\n\r]+" string)
-      (replace-match "" t t string)
-    string)
+  (when (string-match "\\`[ \t\n\r]+" string)
+    (setq string (replace-match "" t t string)))
   (if (string-match "[ \t\n\r]+\\'" string)
       (replace-match "" t t string)
     string))

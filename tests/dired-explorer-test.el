@@ -70,4 +70,17 @@
       (should (equal (dired-explorer-test--type (list ?a event event ?a 13)) '(13)))
       (should (equal (dired-get-filename 'no-dir t) "alpha")))))
 
+(ert-deftest dired-explorer-trim-whitespace ()
+  (dolist (case '(("  hello  " . "hello")
+                  (" \t\n\rhello\r\n\t " . "hello")
+                  ("  hello" . "hello")
+                  ("hello  " . "hello")
+                  ("hello world" . "hello world")
+                  (" \t\n\r" . "")
+                  ("" . "")))
+    (let* ((input (copy-sequence (car case)))
+           (before (copy-sequence input)))
+      (should (equal (dired-explorer-string-trim input) (cdr case)))
+      (should (equal input before)))))
+
 ;;; dired-explorer-test.el ends here
